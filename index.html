@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>紹介ネットワーク</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: #f0f2f5; color: #1a1a1a; }
+
+  .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #e0e0e0; display: flex; z-index: 100; }
+  .nav-btn { flex: 1; padding: 12px 0 8px; border: none; background: none; font-size: 11px; color: #999; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .nav-btn.active { color: #5b4fcf; }
+  .nav-btn svg { width: 22px; height: 22px; }
+
+  .page { display: none; padding: 16px 16px 80px; min-height: 100vh; }
+  .page.active { display: block; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  h1 { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+
+  /* 言語切替ボタン */
+  .lang-btn { border: 1.5px solid #5b4fcf; background: #fff; color: #5b4fcf; border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .lang-btn:active { background: #f0eeff; }
+
+  .card { background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: 500; }
+  input, select { width: 100%; padding: 11px 12px; border: 1.5px solid #e0e0e0; border-radius: 8px; font-size: 15px; outline: none; background: #fafafa; }
+  input:focus, select:focus { border-color: #5b4fcf; background: #fff; }
+  .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+  .btn-primary { background: #5b4fcf; color: #fff; }
+  .btn-danger { background: #ff4444; color: #fff; margin-top: 8px; }
+  .btn-secondary { background: #e8e8e8; color: #333; }
+
+  .search-box { position: relative; margin-bottom: 14px; }
+  .search-box input { padding-left: 38px; }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: #999; }
+
+  .member-card { background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .member-card:active { background: #f5f5f5; }
+  .avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #5b4fcf, #a084e8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; font-weight: 700; flex-shrink: 0; }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name { font-size: 15px; font-weight: 600; }
+  .member-ids { font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .member-count { font-size: 12px; color: #5b4fcf; font-weight: 500; }
+  .chevron { color: #ccc; flex-shrink: 0; }
+
+  .tree-node { }
+  .tree-item { display: flex; align-items: center; padding: 10px 12px; background: #fff; border-radius: 10px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,.07); cursor: pointer; }
+  .tree-item:active { background: #f5f5f5; }
+  .tree-toggle { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #f0eeff; color: #5b4fcf; font-size: 14px; flex-shrink: 0; margin-right: 8px; transition: transform .2s; }
+  .tree-toggle.open { transform: rotate(90deg); }
+  .tree-toggle.leaf { background: transparent; color: #ddd; }
+  .tree-info { flex: 1; min-width: 0; }
+  .tree-name { font-size: 14px; font-weight: 600; }
+  .tree-sub { font-size: 11px; color: #999; margin-top: 1px; }
+  .tree-children { padding-left: 20px; border-left: 2px solid #e8e4ff; margin-left: 12px; margin-top: 4px; display: none; }
+  .tree-children.open { display: block; }
+  .tree-badge { font-size: 11px; color: #5b4fcf; background: #f0eeff; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; margin-left: 4px; }
+
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: flex-end; }
+  .modal.open { display: flex; }
+  .modal-content { background: #fff; border-radius: 20px 20px 0 0; padding: 24px 20px 40px; width: 100%; max-height: 85vh; overflow-y: auto; }
+  .modal-handle { width: 40px; height: 4px; background: #e0e0e0; border-radius: 2px; margin: 0 auto 20px; }
+  .modal-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .modal-id { font-size: 13px; color: #888; margin-bottom: 16px; }
+  .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+  .info-label { color: #888; }
+  .info-value { font-weight: 500; }
+  .modal-actions { margin-top: 20px; display: flex; gap: 10px; }
+  .modal-actions .btn { flex: 1; padding: 12px; font-size: 14px; }
+
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .backup-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .backup-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid #5b4fcf; background: #fff; color: #5b4fcf; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .backup-btn:active { background: #f0eeff; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .stat-num { font-size: 28px; font-weight: 700; color: #5b4fcf; }
+  .stat-label { font-size: 12px; color: #888; margin-top: 2px; }
+
+  .empty { text-align: center; padding: 60px 20px; color: #aaa; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 15px; }
+
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 300; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  .parent-search { position: relative; }
+  .parent-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1.5px solid #5b4fcf; border-radius: 8px; max-height: 180px; overflow-y: auto; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+  .parent-option { padding: 10px 12px; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
+  .parent-option:last-child { border-bottom: none; }
+  .parent-option:active { background: #f5f5f5; }
+  .parent-selected { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid #5b4fcf; border-radius: 8px; background: #f8f6ff; cursor: pointer; }
+  .parent-selected-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .parent-clear { color: #999; font-size: 18px; padding: 0 4px; }
+</style>
+</head>
+<body>
+
+<!-- ページ: ツリー -->
+<div id="page-tree" class="page active">
+  <div class="page-header">
+    <h1 data-i18n="tree"></h1>
+    <button class="lang-btn" onclick="toggleLang()" id="lang-toggle"></button>
+  </div>
+  <div id="tree-root"></div>
+</div>
+
+<!-- ページ: 一覧 -->
+<div id="page-list" class="page">
+  <div class="page-header">
+    <h1 data-i18n="list"></h1>
+    <button class="lang-btn" onclick="toggleLang()" id="lang-toggle-list"></button>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label" data-i18n="totalMembers"></div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-root">0</div><div class="stat-label" data-i18n="directRef"></div></div>
+  </div>
+  <div class="backup-row">
+    <button class="backup-btn" onclick="exportJSON()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span data-i18n="export"></span>
+    </button>
+    <button class="backup-btn" onclick="document.getElementById('import-input').click()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span data-i18n="import"></span>
+    </button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+  <div class="search-box">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="search-input" data-i18n-placeholder="searchPlaceholder" oninput="renderList()">
+  </div>
+  <div id="member-list"></div>
+</div>
+
+<!-- ページ: 追加 -->
+<div id="page-add" class="page">
+  <div class="page-header">
+    <h1 id="form-title" data-i18n="addMember"></h1>
+    <button class="lang-btn" onclick="toggleLang()" id="lang-toggle-add"></button>
+  </div>
+  <div class="card">
+    <div class="form-group">
+      <label data-i18n="labelName"></label>
+      <input type="text" id="f-name" data-i18n-placeholder="placeholderName">
+    </div>
+    <div class="form-group">
+      <label data-i18n="labelMemberId"></label>
+      <input type="text" id="f-member-id" placeholder="M001">
+    </div>
+    <div class="form-group">
+      <label data-i18n="labelContactId"></label>
+      <input type="text" id="f-contact-id" data-i18n-placeholder="placeholderContact">
+    </div>
+    <div class="form-group">
+      <label data-i18n="labelParent"></label>
+      <div class="parent-search">
+        <div id="parent-display"></div>
+        <input type="text" id="parent-search-input" data-i18n-placeholder="placeholderParent" oninput="filterParents()" onfocus="showParentDropdown()" style="display:none">
+        <div id="parent-dropdown" class="parent-dropdown" style="display:none"></div>
+      </div>
+    </div>
+    <input type="hidden" id="f-parent-id" value="">
+    <input type="hidden" id="f-edit-id" value="">
+    <button class="btn btn-primary" onclick="saveMember()" data-i18n="save"></button>
+    <button class="btn btn-secondary" id="btn-cancel-edit" onclick="cancelEdit()" style="display:none; margin-top:8px;" data-i18n="cancel"></button>
+  </div>
+</div>
+
+<!-- メンバー詳細モーダル -->
+<div id="modal" class="modal" onclick="closeModal(event)">
+  <div class="modal-content">
+    <div class="modal-handle"></div>
+    <div class="modal-name" id="modal-name"></div>
+    <div class="modal-id" id="modal-ids"></div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="editMember()" data-i18n="edit"></button>
+      <button class="btn btn-danger" onclick="deleteMember()" data-i18n="delete"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ナビゲーション -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-tree" onclick="showPage('tree')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+    <span data-i18n="tree"></span>
+  </button>
+  <button class="nav-btn" id="nav-list" onclick="showPage('list')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span data-i18n="list"></span>
+  </button>
+  <button class="nav-btn" id="nav-add" onclick="showPage('add')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    <span data-i18n="add"></span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 言語設定 =====
+const LANG_KEY = 'pyramid_lang';
+let lang = localStorage.getItem(LANG_KEY) || 'ja';
+
+const i18n = {
+  ja: {
+    tree: 'ツリー表示', list: 'メンバー一覧', add: '追加', addMember: 'メンバー追加', editMember: 'メンバー編集',
+    totalMembers: '総人数', directRef: '直接紹介',
+    searchPlaceholder: '名前・会員番号・連絡用番号で検索',
+    labelName: '名前 *', labelMemberId: '会員番号 *', labelContactId: '連絡用番号', labelParent: '上位者（紹介者）',
+    placeholderName: '例：田中 太郎', placeholderContact: '例：090-0000-0000', placeholderParent: '名前または会員番号で検索',
+    save: '保存する', cancel: 'キャンセル', edit: '編集', delete: '削除',
+    emptyTree: 'まだメンバーがいません\n「追加」からメンバーを登録してください',
+    emptySearch: '見つかりません',
+    modalMemberId: '会員番号', modalContactId: '連絡用番号', modalParent: '上位者', modalDirect: '直接紹介', modalTotal: '傘下総数',
+    top: '—（トップ）', people: '人', refs: '人紹介',
+    saved: '追加しました', updated: '更新しました', deleted: '削除しました',
+    errName: '名前を入力してください', errMemberId: '会員番号を入力してください',
+    errDup: 'この会員番号は既に使用中です', errCircle: '自分の傘下を上位者にはできません',
+    confirmDelete: 'を削除しますか？',
+    confirmDeleteChildren: 'を削除すると、傘下', confirmDeleteChildren2: '人の上位者が空欄になります。続けますか？',
+    export: '書き出し', import: '読み込み',
+    importSuccess: 'データを読み込みました', importError: 'ファイルが正しくありません',
+    importConfirm: '現在のデータを上書きします。よろしいですか？',
+    langSwitch: 'Tiếng Việt',
+  },
+  vi: {
+    tree: 'Sơ đồ cây', list: 'Danh sách', add: 'Thêm', addMember: 'Thêm thành viên', editMember: 'Chỉnh sửa',
+    totalMembers: 'Tổng số', directRef: 'Giới thiệu trực tiếp',
+    searchPlaceholder: 'Tìm theo tên, mã hội viên, số liên lạc',
+    labelName: 'Họ tên *', labelMemberId: 'Mã hội viên *', labelContactId: 'Số liên lạc', labelParent: 'Người giới thiệu',
+    placeholderName: 'VD: Nguyễn Văn A', placeholderContact: 'VD: 090-0000-0000', placeholderParent: 'Tìm theo tên hoặc mã hội viên',
+    save: 'Lưu', cancel: 'Hủy', edit: 'Sửa', delete: 'Xóa',
+    emptyTree: 'Chưa có thành viên\nNhấn "Thêm" để đăng ký thành viên',
+    emptySearch: 'Không tìm thấy',
+    modalMemberId: 'Mã hội viên', modalContactId: 'Số liên lạc', modalParent: 'Người giới thiệu', modalDirect: 'Giới thiệu trực tiếp', modalTotal: 'Tổng cấp dưới',
+    top: '— (Đầu hệ thống)', people: ' người', refs: ' giới thiệu',
+    saved: 'Đã thêm', updated: 'Đã cập nhật', deleted: 'Đã xóa',
+    errName: 'Vui lòng nhập họ tên', errMemberId: 'Vui lòng nhập mã hội viên',
+    errDup: 'Mã hội viên này đã được sử dụng', errCircle: 'Không thể chọn cấp dưới làm người giới thiệu',
+    confirmDelete: ' có chắc muốn xóa?',
+    confirmDeleteChildren: ' xóa sẽ làm ', confirmDeleteChildren2: ' thành viên cấp dưới mất người giới thiệu. Tiếp tục?',
+    export: 'Xuất dữ liệu', import: 'Nhập dữ liệu',
+    importSuccess: 'Đã nhập dữ liệu', importError: 'File không hợp lệ',
+    importConfirm: 'Sẽ ghi đè dữ liệu hiện tại. Tiếp tục?',
+    langSwitch: '日本語',
+  }
+};
+
+function t(key) { return i18n[lang][key] || key; }
+
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.placeholder = t(key);
+  });
+  document.querySelectorAll('.lang-btn').forEach(btn => btn.textContent = t('langSwitch'));
+  // form-title は編集中に書き換わるので別途
+  const ft = document.getElementById('f-edit-id').value ? t('editMember') : t('addMember');
+  document.getElementById('form-title').textContent = ft;
+}
+
+function toggleLang() {
+  lang = lang === 'ja' ? 'vi' : 'ja';
+  localStorage.setItem(LANG_KEY, lang);
+  applyLang();
+  renderTree();
+  renderList();
+}
+
+// ===== データ管理 =====
+const STORAGE_KEY = 'pyramid_members';
+let members = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let currentModalId = null;
+let selectedParentId = '';
+
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(members)); }
+function getChildren(parentId) { return members.filter(m => m.parentId === parentId); }
+function getDescendantCount(id) {
+  const ch = getChildren(id);
+  return ch.reduce((s, c) => s + 1 + getDescendantCount(c.id), 0);
+}
+function getMember(id) { return members.find(m => m.id === id); }
+
+// ===== ページ切替 =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'tree') renderTree();
+  if (name === 'list') renderList();
+  if (name === 'add' && !document.getElementById('f-edit-id').value) resetForm();
+}
+
+// ===== ツリー描画 =====
+function renderTree() {
+  const container = document.getElementById('tree-root');
+  const roots = members.filter(m => !m.parentId);
+  if (roots.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">🌱</div><div class="empty-text">${t('emptyTree').replace('\n','<br>')}</div></div>`;
+    return;
+  }
+  container.innerHTML = roots.map(m => renderNode(m)).join('');
+}
+
+function renderNode(member) {
+  const children = getChildren(member.id);
+  const count = getDescendantCount(member.id);
+  const hasChildren = children.length > 0;
+  return `
+    <div class="tree-node" id="node-${member.id}">
+      <div class="tree-item" onclick="toggleNode('${member.id}', event)">
+        <div class="tree-toggle ${hasChildren ? '' : 'leaf'}" id="toggle-${member.id}">${hasChildren ? '›' : '·'}</div>
+        <div class="tree-info">
+          <div class="tree-name">${esc(member.name)}</div>
+          <div class="tree-sub">${esc(member.memberId)}${member.contactId ? ' · ' + esc(member.contactId) : ''}</div>
+        </div>
+        ${count > 0 ? `<span class="tree-badge">${count}${t('people')}</span>` : ''}
+        <svg onclick="openModal('${member.id}',event)" style="margin-left:8px;flex-shrink:0" class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </div>
+      ${hasChildren ? `<div class="tree-children" id="children-${member.id}">${children.map(c => renderNode(c)).join('')}</div>` : ''}
+    </div>`;
+}
+
+function toggleNode(id, event) {
+  if (event.target.closest('svg')) return;
+  const toggle = document.getElementById('toggle-' + id);
+  const children = document.getElementById('children-' + id);
+  if (!children) return;
+  children.classList.toggle('open');
+  toggle.classList.toggle('open');
+}
+
+// ===== 一覧描画 =====
+function renderList() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const filtered = members.filter(m =>
+    m.name.toLowerCase().includes(q) ||
+    m.memberId.toLowerCase().includes(q) ||
+    (m.contactId || '').toLowerCase().includes(q)
+  );
+  document.getElementById('stat-total').textContent = members.length;
+  document.getElementById('stat-root').textContent = members.filter(m => !m.parentId).length;
+  const list = document.getElementById('member-list');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">${t('emptySearch')}</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(m => {
+    const childCount = getChildren(m.id).length;
+    const parent = m.parentId ? getMember(m.parentId) : null;
+    return `
+      <div class="member-card" onclick="openModal('${m.id}')">
+        <div class="avatar">${esc(m.name[0])}</div>
+        <div class="member-info">
+          <div class="member-name">${esc(m.name)}</div>
+          <div class="member-ids">${esc(m.memberId)}${m.contactId ? ' · ' + esc(m.contactId) : ''}${parent ? ' ← ' + esc(parent.name) : ''}</div>
+        </div>
+        ${childCount > 0 ? `<div class="member-count">${childCount}${t('refs')}</div>` : ''}
+        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>`;
+  }).join('');
+}
+
+// ===== モーダル =====
+function openModal(id, event) {
+  if (event) event.stopPropagation();
+  const m = getMember(id);
+  if (!m) return;
+  currentModalId = id;
+  document.getElementById('modal-name').textContent = m.name;
+  document.getElementById('modal-ids').textContent = m.memberId + (m.contactId ? ' · ' + m.contactId : '');
+  const parent = m.parentId ? getMember(m.parentId) : null;
+  const children = getChildren(id);
+  const descCount = getDescendantCount(id);
+  document.getElementById('modal-body').innerHTML = `
+    <div class="info-row"><span class="info-label">${t('modalMemberId')}</span><span class="info-value">${esc(m.memberId)}</span></div>
+    <div class="info-row"><span class="info-label">${t('modalContactId')}</span><span class="info-value">${m.contactId ? esc(m.contactId) : '—'}</span></div>
+    <div class="info-row"><span class="info-label">${t('modalParent')}</span><span class="info-value">${parent ? esc(parent.name) : t('top')}</span></div>
+    <div class="info-row"><span class="info-label">${t('modalDirect')}</span><span class="info-value">${children.length}${t('people')}</span></div>
+    <div class="info-row"><span class="info-label">${t('modalTotal')}</span><span class="info-value">${descCount}${t('people')}</span></div>
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(event) {
+  if (event.target === document.getElementById('modal'))
+    document.getElementById('modal').classList.remove('open');
+}
+
+function editMember() {
+  const m = getMember(currentModalId);
+  if (!m) return;
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('form-title').textContent = t('editMember');
+  document.getElementById('f-name').value = m.name;
+  document.getElementById('f-member-id').value = m.memberId;
+  document.getElementById('f-contact-id').value = m.contactId || '';
+  document.getElementById('f-edit-id').value = m.id;
+  document.getElementById('btn-cancel-edit').style.display = '';
+  selectedParentId = m.parentId || '';
+  renderParentDisplay();
+  showPage('add');
+}
+
+function deleteMember() {
+  const m = getMember(currentModalId);
+  if (!m) return;
+  const children = getChildren(currentModalId);
+  if (children.length > 0) {
+    if (!confirm(m.name + t('confirmDeleteChildren') + children.length + t('confirmDeleteChildren2'))) return;
+    members.forEach(mem => { if (mem.parentId === currentModalId) mem.parentId = ''; });
+  } else {
+    if (!confirm(m.name + t('confirmDelete'))) return;
+  }
+  members = members.filter(mem => mem.id !== currentModalId);
+  save();
+  document.getElementById('modal').classList.remove('open');
+  showToast(t('deleted'));
+  renderList(); renderTree();
+}
+
+// ===== フォーム =====
+function saveMember() {
+  const name = document.getElementById('f-name').value.trim();
+  const memberId = document.getElementById('f-member-id').value.trim();
+  const contactId = document.getElementById('f-contact-id').value.trim();
+  const editId = document.getElementById('f-edit-id').value;
+  const parentId = selectedParentId;
+  if (!name) { showToast(t('errName')); return; }
+  if (!memberId) { showToast(t('errMemberId')); return; }
+  const dup = members.find(m => m.memberId === memberId && m.id !== editId);
+  if (dup) { showToast(t('errDup')); return; }
+  if (editId) {
+    if (isDescendant(editId, parentId)) { showToast(t('errCircle')); return; }
+    const m = getMember(editId);
+    if (m) { m.name = name; m.memberId = memberId; m.contactId = contactId; m.parentId = parentId; }
+  } else {
+    members.push({ id: Date.now().toString(), name, memberId, contactId, parentId });
+  }
+  save();
+  showToast(editId ? t('updated') : t('saved'));
+  resetForm();
+  showPage('list');
+}
+
+function isDescendant(ancestorId, targetId) {
+  if (!targetId) return false;
+  let current = getMember(targetId);
+  while (current) {
+    if (current.id === ancestorId) return true;
+    current = current.parentId ? getMember(current.parentId) : null;
+  }
+  return false;
+}
+
+function resetForm() {
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-member-id').value = '';
+  document.getElementById('f-contact-id').value = '';
+  document.getElementById('f-edit-id').value = '';
+  document.getElementById('form-title').textContent = t('addMember');
+  document.getElementById('btn-cancel-edit').style.display = 'none';
+  selectedParentId = '';
+  renderParentDisplay();
+}
+
+function cancelEdit() { resetForm(); showPage('list'); }
+
+// ===== 上位者選択 =====
+function renderParentDisplay() {
+  const display = document.getElementById('parent-display');
+  const input = document.getElementById('parent-search-input');
+  if (selectedParentId) {
+    const p = getMember(selectedParentId);
+    display.style.display = '';
+    input.style.display = 'none';
+    display.innerHTML = `<div class="parent-selected"><span class="parent-selected-name">${esc(p?.name || '')} <small style="color:#888">${esc(p?.memberId || '')}</small></span><span class="parent-clear" onclick="clearParent()">×</span></div>`;
+  } else {
+    display.style.display = 'none';
+    input.style.display = '';
+    input.value = '';
+    document.getElementById('parent-dropdown').style.display = 'none';
+  }
+}
+
+function clearParent() { selectedParentId = ''; renderParentDisplay(); }
+function showParentDropdown() { filterParents(); }
+
+function filterParents() {
+  const q = document.getElementById('parent-search-input').value.toLowerCase();
+  const editId = document.getElementById('f-edit-id').value;
+  const dropdown = document.getElementById('parent-dropdown');
+  const filtered = members.filter(m =>
+    m.id !== editId &&
+    (m.name.toLowerCase().includes(q) || m.memberId.toLowerCase().includes(q))
+  ).slice(0, 30);
+  if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+  dropdown.style.display = '';
+  dropdown.innerHTML = filtered.map(m =>
+    `<div class="parent-option" onclick="selectParent('${m.id}')">${esc(m.name)} <span style="color:#aaa;font-size:12px">${esc(m.memberId)}</span></div>`
+  ).join('');
+}
+
+function selectParent(id) {
+  selectedParentId = id;
+  document.getElementById('parent-dropdown').style.display = 'none';
+  renderParentDisplay();
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.parent-search'))
+    document.getElementById('parent-dropdown').style.display = 'none';
+});
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t2 = document.getElementById('toast');
+  t2.textContent = msg;
+  t2.classList.add('show');
+  setTimeout(() => t2.classList.remove('show'), 2000);
+}
+
+// ===== JSON書き出し・読み込み =====
+function exportJSON() {
+  const data = JSON.stringify(members, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `pyramid-backup-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(lang === 'ja' ? '書き出しました' : 'Đã xuất file');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!confirm(t('importConfirm'))) { event.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error();
+      members = data;
+      save();
+      showToast(t('importSuccess'));
+      renderList();
+      renderTree();
+    } catch {
+      showToast(t('importError'));
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// 初期化
+applyLang();
+renderTree();
+</script>
+</body>
+</html>
