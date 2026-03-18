@@ -217,17 +217,17 @@ const i18n = {
   ja: {
     tree: 'ツリー表示', list: 'メンバー一覧', add: '追加', addMember: 'メンバー追加', editMember: 'メンバー編集',
     totalMembers: '総人数', directRef: '直接紹介',
-    searchPlaceholder: '名前・会員番号・連絡用番号で検索',
-    labelName: '名前 *', labelMemberId: '会員番号 *', labelContactId: '連絡用番号', labelParent: '上位者（紹介者）',
-    placeholderName: '例：田中 太郎', placeholderContact: '例：090-0000-0000', placeholderParent: '名前または会員番号で検索',
+    searchPlaceholder: '名前・DSJ ID・BonChat IDで検索',
+    labelName: '名前 *', labelMemberId: 'DSJ ID *', labelContactId: 'BonChat ID', labelParent: '上位者（紹介者）',
+    placeholderName: '例：田中 太郎', placeholderContact: '例：BonChat ID', placeholderParent: '名前またはDSJ IDで検索',
     save: '保存する', cancel: 'キャンセル', edit: '編集', delete: '削除',
     emptyTree: 'まだメンバーがいません\n「追加」からメンバーを登録してください',
     emptySearch: '見つかりません',
-    modalMemberId: '会員番号', modalContactId: '連絡用番号', modalParent: '上位者', modalDirect: '直接紹介', modalTotal: '傘下総数',
+    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: '上位者', modalDirect: '直接紹介', modalTotal: '傘下総数',
     top: '—（トップ）', people: '人', refs: '人紹介',
     saved: '追加しました', updated: '更新しました', deleted: '削除しました',
-    errName: '名前を入力してください', errMemberId: '会員番号を入力してください',
-    errDup: 'この会員番号は既に使用中です', errCircle: '自分の傘下を上位者にはできません',
+    errName: '名前を入力してください', errMemberId: 'DSJ IDを入力してください',
+    errDup: 'このDSJ IDは既に使用中です', errCircle: '自分の傘下を上位者にはできません',
     confirmDelete: 'を削除しますか？',
     confirmDeleteChildren: 'を削除すると、傘下', confirmDeleteChildren2: '人の上位者が空欄になります。続けますか？',
     backupTitle: '🔒 データのバックアップ',
@@ -241,17 +241,17 @@ const i18n = {
   vi: {
     tree: 'Sơ đồ cây', list: 'Danh sách', add: 'Thêm', addMember: 'Thêm thành viên', editMember: 'Chỉnh sửa',
     totalMembers: 'Tổng số', directRef: 'Giới thiệu trực tiếp',
-    searchPlaceholder: 'Tìm theo tên, mã hội viên, số liên lạc',
-    labelName: 'Họ tên *', labelMemberId: 'Mã hội viên *', labelContactId: 'Số liên lạc', labelParent: 'Người giới thiệu',
-    placeholderName: 'VD: Nguyễn Văn A', placeholderContact: 'VD: 090-0000-0000', placeholderParent: 'Tìm theo tên hoặc mã hội viên',
+    searchPlaceholder: 'Tìm theo tên, DSJ ID, BonChat ID',
+    labelName: 'Họ tên *', labelMemberId: 'DSJ ID *', labelContactId: 'BonChat ID', labelParent: 'Người giới thiệu',
+    placeholderName: 'VD: Nguyễn Văn A', placeholderContact: 'VD: BonChat ID', placeholderParent: 'Tìm theo tên hoặc DSJ ID',
     save: 'Lưu', cancel: 'Hủy', edit: 'Sửa', delete: 'Xóa',
     emptyTree: 'Chưa có thành viên\nNhấn "Thêm" để đăng ký thành viên',
     emptySearch: 'Không tìm thấy',
-    modalMemberId: 'Mã hội viên', modalContactId: 'Số liên lạc', modalParent: 'Người giới thiệu', modalDirect: 'Giới thiệu trực tiếp', modalTotal: 'Tổng cấp dưới',
+    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: 'Người giới thiệu', modalDirect: 'Giới thiệu trực tiếp', modalTotal: 'Tổng cấp dưới',
     top: '— (Đầu hệ thống)', people: ' người', refs: ' giới thiệu',
     saved: 'Đã thêm', updated: 'Đã cập nhật', deleted: 'Đã xóa',
-    errName: 'Vui lòng nhập họ tên', errMemberId: 'Vui lòng nhập mã hội viên',
-    errDup: 'Mã hội viên này đã được sử dụng', errCircle: 'Không thể chọn cấp dưới làm người giới thiệu',
+    errName: 'Vui lòng nhập họ tên', errMemberId: 'Vui lòng nhập DSJ ID',
+    errDup: 'DSJ ID này đã được sử dụng', errCircle: 'Không thể chọn cấp dưới làm người giới thiệu',
     confirmDelete: ' có chắc muốn xóa?',
     confirmDeleteChildren: ' xóa sẽ làm ', confirmDeleteChildren2: ' thành viên cấp dưới mất người giới thiệu. Tiếp tục?',
     backupTitle: '🔒 Sao lưu dữ liệu',
@@ -259,8 +259,32 @@ const i18n = {
     import: '📂 Khôi phục', importSub: 'Nhập từ file',
     importSuccess: 'Đã khôi phục dữ liệu', importError: 'File không hợp lệ',
     importConfirm: 'Sẽ ghi đè dữ liệu hiện tại. Tiếp tục?',
-    langSwitch: '日本語',
+    langSwitch: 'English',
     levelLabel: 'Cấp độ', noLevel: 'Chưa đạt',
+  },
+  en: {
+    tree: 'Tree View', list: 'Members', add: 'Add', addMember: 'Add Member', editMember: 'Edit Member',
+    totalMembers: 'Total', directRef: 'Direct Refs',
+    searchPlaceholder: 'Search by name, DSJ ID, BonChat ID',
+    labelName: 'Name *', labelMemberId: 'DSJ ID *', labelContactId: 'BonChat ID', labelParent: 'Referrer',
+    placeholderName: 'e.g. John Smith', placeholderContact: 'e.g. BonChat ID', placeholderParent: 'Search by name or DSJ ID',
+    save: 'Save', cancel: 'Cancel', edit: 'Edit', delete: 'Delete',
+    emptyTree: 'No members yet\nTap "Add" to register a member',
+    emptySearch: 'Not found',
+    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: 'Referrer', modalDirect: 'Direct Refs', modalTotal: 'Total Downline',
+    top: '— (Top)', people: '', refs: ' refs',
+    saved: 'Added', updated: 'Updated', deleted: 'Deleted',
+    errName: 'Please enter a name', errMemberId: 'Please enter a DSJ ID',
+    errDup: 'This DSJ ID is already in use', errCircle: 'Cannot set a downline member as referrer',
+    confirmDelete: ' — are you sure you want to delete?',
+    confirmDeleteChildren: ' deleting will remove the referrer from ', confirmDeleteChildren2: ' member(s). Continue?',
+    backupTitle: '🔒 Data Backup',
+    export: '💾 Save Backup', exportSub: 'Export to file',
+    import: '📂 Restore', importSub: 'Import from file',
+    importSuccess: 'Data restored', importError: 'Invalid file',
+    importConfirm: 'This will overwrite current data. Continue?',
+    langSwitch: '日本語',
+    levelLabel: 'Level', noLevel: 'Not reached',
   }
 };
 
@@ -282,7 +306,7 @@ function applyLang() {
 }
 
 function toggleLang() {
-  lang = lang === 'ja' ? 'vi' : 'ja';
+  lang = lang === 'ja' ? 'vi' : lang === 'vi' ? 'en' : 'ja';
   localStorage.setItem(LANG_KEY, lang);
   applyLang();
   renderTree();
@@ -592,7 +616,7 @@ function exportJSON() {
   a.download = `pyramid-backup-${date}.json`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast(lang === 'ja' ? '書き出しました' : 'Đã xuất file');
+  showToast(lang === 'ja' ? '書き出しました' : lang === 'vi' ? 'Đã xuất file' : 'Exported');
 }
 
 function importJSON(event) {
