@@ -419,7 +419,7 @@ function renderList() {
     (m.contactId || '').toLowerCase().includes(q)
   );
   document.getElementById('stat-total').textContent = members.length;
-  document.getElementById('stat-root').textContent = members.filter(m => !m.parentId).length;
+  document.getElementById('stat-root').textContent = members.filter(m => m.parentId).length;
   const list = document.getElementById('member-list');
   if (filtered.length === 0) {
     list.innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><div class="empty-text">${t('emptySearch')}</div></div>`;
