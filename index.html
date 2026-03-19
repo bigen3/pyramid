@@ -98,6 +98,12 @@
   .parent-selected { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1.5px solid #5b4fcf; border-radius: 8px; background: #f8f6ff; cursor: pointer; }
   .parent-selected-name { flex: 1; font-size: 14px; font-weight: 500; }
   .parent-clear { color: #999; font-size: 18px; padding: 0 4px; }
+
+  .sort-mode-btn { border: 1.5px solid #5b4fcf; background: #fff; color: #5b4fcf; border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .sort-mode-btn.active { background: #5b4fcf; color: #fff; }
+  .drag-handle { color: #ccc; cursor: grab; padding: 4px 8px 4px 0; display: flex; align-items: center; flex-shrink: 0; touch-action: none; user-select: none; }
+  .member-card.dragging { opacity: 0.4; }
+  .member-card.drag-over { outline: 2px dashed #5b4fcf; background: #f0eeff; }
 </style>
 </head>
 <body>
@@ -115,7 +121,10 @@
 <div id="page-list" class="page">
   <div class="page-header">
     <h1 data-i18n="list"></h1>
-    <button class="lang-btn" onclick="toggleLang()" id="lang-toggle-list"></button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="sort-toggle-btn" class="sort-mode-btn" onclick="toggleSortMode()"></button>
+      <button class="lang-btn" onclick="toggleLang()" id="lang-toggle-list"></button>
+    </div>
   </div>
   <div class="stats">
     <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label" data-i18n="totalMembers"></div></div>
@@ -135,7 +144,7 @@
       <input type="file" id="import-input" accept=".json" style="display:none" onchange="importJSON(event)">
     </div>
   </div>
-  <div class="search-box">
+  <div class="search-box" id="search-box-wrap">
     <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="search-input" data-i18n-placeholder="searchPlaceholder" oninput="renderList()">
   </div>
@@ -237,6 +246,7 @@ const i18n = {
     importConfirm: '現在のデータを上書きします。よろしいですか？',
     langSwitch: 'Tiếng Việt',
     levelLabel: 'レベル', noLevel: '未達成',
+    sortBtn: '並び替え', sortDone: '完了',
   },
   vi: {
     tree: 'Sơ đồ cây', list: 'Danh sách', add: 'Thêm', addMember: 'Thêm thành viên', editMember: 'Chỉnh sửa',
@@ -261,6 +271,7 @@ const i18n = {
     importConfirm: 'Sẽ ghi đè dữ liệu hiện tại. Tiếp tục?',
     langSwitch: 'English',
     levelLabel: 'Cấp độ', noLevel: 'Chưa đạt',
+    sortBtn: 'Sắp xếp', sortDone: 'Xong',
   },
   en: {
     tree: 'Tree View', list: 'Members', add: 'Add', addMember: 'Add Member', editMember: 'Edit Member',
@@ -285,6 +296,7 @@ const i18n = {
     importConfirm: 'This will overwrite current data. Continue?',
     langSwitch: '日本語',
     levelLabel: 'Level', noLevel: 'Not reached',
+    sortBtn: 'Reorder', sortDone: 'Done',
   }
 };
 
@@ -300,6 +312,8 @@ function applyLang() {
     el.placeholder = t(key);
   });
   document.querySelectorAll('.lang-btn').forEach(btn => btn.textContent = t('langSwitch'));
+  const sb = document.getElementById('sort-toggle-btn');
+  if (sb) sb.textContent = sortMode ? t('sortDone') : t('sortBtn');
   // form-title は編集中に書き換わるので別途
   const ft = document.getElementById('f-edit-id').value ? t('editMember') : t('addMember');
   document.getElementById('form-title').textContent = ft;
@@ -357,6 +371,72 @@ function levelBadge(count) {
   const lv = getLevel(count);
   if (lv === 0) return '';
   return `<span style="font-size:11px;font-weight:700;color:${LEVEL_COLORS[lv]};background:${LEVEL_BG[lv]};padding:2px 8px;border-radius:10px;flex-shrink:0;margin-left:4px">Lv.${lv}</span>`;
+}
+
+// ===== 並び替え =====
+let sortMode = false;
+let ptrDragId = null, ptrTargetId = null, ptrGhost = null;
+
+function toggleSortMode() {
+  sortMode = !sortMode;
+  const btn = document.getElementById('sort-toggle-btn');
+  btn.classList.toggle('active', sortMode);
+  btn.textContent = sortMode ? t('sortDone') : t('sortBtn');
+  document.getElementById('search-box-wrap').style.display = sortMode ? 'none' : '';
+  if (sortMode) document.getElementById('search-input').value = '';
+  renderList();
+}
+
+function reorderMember(srcId, targetId) {
+  const srcIdx = members.findIndex(m => m.id === srcId);
+  const [src] = members.splice(srcIdx, 1);
+  const targetIdx = members.findIndex(m => m.id === targetId);
+  members.splice(targetIdx, 0, src);
+  save();
+  renderList();
+}
+
+function onHandlePointerDown(e, id) {
+  e.preventDefault();
+  e.stopPropagation();
+  ptrDragId = id;
+  ptrTargetId = null;
+  const card = e.currentTarget.closest('.member-card');
+  const rect = card.getBoundingClientRect();
+  ptrGhost = card.cloneNode(true);
+  Object.assign(ptrGhost.style, { position: 'fixed', width: rect.width + 'px', left: rect.left + 'px', top: (e.clientY - rect.height / 2) + 'px', opacity: '0.75', pointerEvents: 'none', zIndex: '999', margin: '0', boxShadow: '0 6px 24px rgba(0,0,0,.25)' });
+  document.body.appendChild(ptrGhost);
+  card.classList.add('dragging');
+  document.addEventListener('pointermove', onPtrMove);
+  document.addEventListener('pointerup', onPtrUp);
+  document.addEventListener('pointercancel', onPtrUp);
+}
+
+function onPtrMove(e) {
+  if (!ptrDragId) return;
+  ptrGhost.style.top = (e.clientY - ptrGhost.offsetHeight / 2) + 'px';
+  ptrGhost.style.display = 'none';
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  ptrGhost.style.display = '';
+  const card = el?.closest('.member-card[data-id]');
+  document.querySelectorAll('.member-card').forEach(c => c.classList.remove('drag-over'));
+  if (card && card.dataset.id !== ptrDragId) {
+    card.classList.add('drag-over');
+    ptrTargetId = card.dataset.id;
+  } else {
+    ptrTargetId = null;
+  }
+}
+
+function onPtrUp() {
+  document.removeEventListener('pointermove', onPtrMove);
+  document.removeEventListener('pointerup', onPtrUp);
+  document.removeEventListener('pointercancel', onPtrUp);
+  if (ptrGhost) { ptrGhost.remove(); ptrGhost = null; }
+  document.querySelectorAll('.member-card').forEach(c => { c.classList.remove('dragging'); c.classList.remove('drag-over'); });
+  if (ptrTargetId && ptrTargetId !== ptrDragId) reorderMember(ptrDragId, ptrTargetId);
+  ptrDragId = null;
+  ptrTargetId = null;
 }
 
 // ===== ページ切替 =====
@@ -429,7 +509,8 @@ function renderList() {
     const childCount = getChildren(m.id).length;
     const parent = m.parentId ? getMember(m.parentId) : null;
     return `
-      <div class="member-card" onclick="openModal('${m.id}')">
+      <div class="member-card" data-id="${m.id}" ${sortMode ? '' : `onclick="openModal('${m.id}')"`}>
+        ${sortMode ? `<div class="drag-handle" onpointerdown="onHandlePointerDown(event,'${m.id}')"><svg width="14" height="20" viewBox="0 0 14 20" fill="#ccc"><circle cx="4" cy="4" r="2"/><circle cx="10" cy="4" r="2"/><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="4" cy="16" r="2"/><circle cx="10" cy="16" r="2"/></svg></div>` : ''}
         <div class="avatar">${esc(m.name[0])}</div>
         <div class="member-info">
           <div class="member-name">${esc(m.name)}</div>
@@ -437,7 +518,7 @@ function renderList() {
         </div>
         ${childCount > 0 ? `<div class="member-count">${childCount}${t('refs')}</div>` : ''}
         ${levelBadge(getDescendantCount(m.id))}
-        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        ${!sortMode ? `<svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>` : ''}
       </div>`;
   }).join('');
 }
