@@ -171,6 +171,14 @@
       <input type="text" id="f-contact-id" data-i18n-placeholder="placeholderContact">
     </div>
     <div class="form-group">
+      <label data-i18n="labelDate"></label>
+      <input type="date" id="f-date">
+    </div>
+    <div class="form-group">
+      <label data-i18n="labelAmount"></label>
+      <input type="number" id="f-amount" data-i18n-placeholder="placeholderAmount" min="0">
+    </div>
+    <div class="form-group">
       <label data-i18n="labelParent"></label>
       <div class="parent-search">
         <div id="parent-display"></div>
@@ -228,11 +236,12 @@ const i18n = {
     totalMembers: '総人数', directRef: '直接紹介',
     searchPlaceholder: '名前・DSJ ID・BonChat IDで検索',
     labelName: '名前 *', labelMemberId: 'DSJ ID *', labelContactId: 'BonChat ID', labelParent: '上位者（紹介者）',
-    placeholderName: '例：田中 太郎', placeholderContact: '例：BonChat ID', placeholderParent: '名前またはDSJ IDで検索',
+    labelDate: '日付', labelAmount: '金額',
+    placeholderName: '例：田中 太郎', placeholderContact: '例：BonChat ID', placeholderParent: '名前またはDSJ IDで検索', placeholderAmount: '例：10000',
     save: '保存する', cancel: 'キャンセル', edit: '編集', delete: '削除',
     emptyTree: 'まだメンバーがいません\n「追加」からメンバーを登録してください',
     emptySearch: '見つかりません',
-    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: '上位者', modalDirect: '直接紹介', modalTotal: '傘下総数',
+    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: '上位者', modalDirect: '直接紹介', modalTotal: '傘下総数', modalDate: '日付', modalAmount: '金額',
     top: '—（トップ）', people: '人', refs: '人紹介',
     saved: '追加しました', updated: '更新しました', deleted: '削除しました',
     errName: '名前を入力してください', errMemberId: 'DSJ IDを入力してください',
@@ -253,11 +262,12 @@ const i18n = {
     totalMembers: 'Tổng số', directRef: 'Giới thiệu trực tiếp',
     searchPlaceholder: 'Tìm theo tên, DSJ ID, BonChat ID',
     labelName: 'Họ tên *', labelMemberId: 'DSJ ID *', labelContactId: 'BonChat ID', labelParent: 'Người giới thiệu',
-    placeholderName: 'VD: Nguyễn Văn A', placeholderContact: 'VD: BonChat ID', placeholderParent: 'Tìm theo tên hoặc DSJ ID',
+    labelDate: 'Ngày', labelAmount: 'Số tiền',
+    placeholderName: 'VD: Nguyễn Văn A', placeholderContact: 'VD: BonChat ID', placeholderParent: 'Tìm theo tên hoặc DSJ ID', placeholderAmount: 'VD: 10000',
     save: 'Lưu', cancel: 'Hủy', edit: 'Sửa', delete: 'Xóa',
     emptyTree: 'Chưa có thành viên\nNhấn "Thêm" để đăng ký thành viên',
     emptySearch: 'Không tìm thấy',
-    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: 'Người giới thiệu', modalDirect: 'Giới thiệu trực tiếp', modalTotal: 'Tổng cấp dưới',
+    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: 'Người giới thiệu', modalDirect: 'Giới thiệu trực tiếp', modalTotal: 'Tổng cấp dưới', modalDate: 'Ngày', modalAmount: 'Số tiền',
     top: '— (Đầu hệ thống)', people: ' người', refs: ' giới thiệu',
     saved: 'Đã thêm', updated: 'Đã cập nhật', deleted: 'Đã xóa',
     errName: 'Vui lòng nhập họ tên', errMemberId: 'Vui lòng nhập DSJ ID',
@@ -278,11 +288,12 @@ const i18n = {
     totalMembers: 'Total', directRef: 'Direct Refs',
     searchPlaceholder: 'Search by name, DSJ ID, BonChat ID',
     labelName: 'Name *', labelMemberId: 'DSJ ID *', labelContactId: 'BonChat ID', labelParent: 'Referrer',
-    placeholderName: 'e.g. John Smith', placeholderContact: 'e.g. BonChat ID', placeholderParent: 'Search by name or DSJ ID',
+    labelDate: 'Date', labelAmount: 'Amount',
+    placeholderName: 'e.g. John Smith', placeholderContact: 'e.g. BonChat ID', placeholderParent: 'Search by name or DSJ ID', placeholderAmount: 'e.g. 10000',
     save: 'Save', cancel: 'Cancel', edit: 'Edit', delete: 'Delete',
     emptyTree: 'No members yet\nTap "Add" to register a member',
     emptySearch: 'Not found',
-    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: 'Referrer', modalDirect: 'Direct Refs', modalTotal: 'Total Downline',
+    modalMemberId: 'DSJ ID', modalContactId: 'BonChat ID', modalParent: 'Referrer', modalDirect: 'Direct Refs', modalTotal: 'Total Downline', modalDate: 'Date', modalAmount: 'Amount',
     top: '— (Top)', people: '', refs: ' refs',
     saved: 'Added', updated: 'Updated', deleted: 'Deleted',
     errName: 'Please enter a name', errMemberId: 'Please enter a DSJ ID',
@@ -537,6 +548,8 @@ function openModal(id, event) {
   document.getElementById('modal-body').innerHTML = `
     <div class="info-row"><span class="info-label">${t('modalMemberId')}</span><span class="info-value">${esc(m.memberId)}</span></div>
     <div class="info-row"><span class="info-label">${t('modalContactId')}</span><span class="info-value">${m.contactId ? esc(m.contactId) : '—'}</span></div>
+    ${m.date ? `<div class="info-row"><span class="info-label">${t('modalDate')}</span><span class="info-value">${esc(m.date)}</span></div>` : ''}
+    ${m.amount ? `<div class="info-row"><span class="info-label">${t('modalAmount')}</span><span class="info-value">${Number(m.amount).toLocaleString()}</span></div>` : ''}
     <div class="info-row"><span class="info-label">${t('modalParent')}</span><span class="info-value">${parent ? esc(parent.name) : t('top')}</span></div>
     <div class="info-row"><span class="info-label">${t('modalDirect')}</span><span class="info-value">${children.length}${t('people')}</span></div>
     <div class="info-row"><span class="info-label">${t('modalTotal')}</span><span class="info-value">${descCount}${t('people')}</span></div>
@@ -558,6 +571,8 @@ function editMember() {
   document.getElementById('f-name').value = m.name;
   document.getElementById('f-member-id').value = m.memberId;
   document.getElementById('f-contact-id').value = m.contactId || '';
+  document.getElementById('f-date').value = m.date || '';
+  document.getElementById('f-amount').value = m.amount || '';
   document.getElementById('f-edit-id').value = m.id;
   document.getElementById('btn-cancel-edit').style.display = '';
   selectedParentId = m.parentId || '';
@@ -587,6 +602,8 @@ function saveMember() {
   const name = document.getElementById('f-name').value.trim();
   const memberId = document.getElementById('f-member-id').value.trim();
   const contactId = document.getElementById('f-contact-id').value.trim();
+  const date = document.getElementById('f-date').value;
+  const amount = document.getElementById('f-amount').value;
   const editId = document.getElementById('f-edit-id').value;
   const parentId = selectedParentId;
   if (!name) { showToast(t('errName')); return; }
@@ -596,9 +613,9 @@ function saveMember() {
   if (editId) {
     if (isDescendant(editId, parentId)) { showToast(t('errCircle')); return; }
     const m = getMember(editId);
-    if (m) { m.name = name; m.memberId = memberId; m.contactId = contactId; m.parentId = parentId; }
+    if (m) { m.name = name; m.memberId = memberId; m.contactId = contactId; m.date = date; m.amount = amount; m.parentId = parentId; }
   } else {
-    members.push({ id: Date.now().toString(), name, memberId, contactId, parentId });
+    members.push({ id: Date.now().toString(), name, memberId, contactId, date, amount, parentId });
   }
   save();
   showToast(editId ? t('updated') : t('saved'));
@@ -620,6 +637,8 @@ function resetForm() {
   document.getElementById('f-name').value = '';
   document.getElementById('f-member-id').value = '';
   document.getElementById('f-contact-id').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-amount').value = '';
   document.getElementById('f-edit-id').value = '';
   document.getElementById('form-title').textContent = t('addMember');
   document.getElementById('btn-cancel-edit').style.display = 'none';
